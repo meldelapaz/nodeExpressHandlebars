@@ -13,7 +13,7 @@ var connection = mysql.createConnection({
     host    : 'localhost',
     user    : 'root',
     password: '',
-    database: 'movehub'
+    database: 'SNL'
 });
 
 // CONNECTING TO MYSQL DATABASE
@@ -24,7 +24,7 @@ connection.connect(function(error) {
     console.log('Connected to MySQL server, as ID = ', connection.threadId);
 });
 
-// express npm package
+// EXPRESS NPM PACKAGE
 var app = express();
 
 // override with the X-HTTP-Method-Override header in the request
@@ -34,16 +34,16 @@ app.use(methodOverride('X-HTTP-Method-Override'));
 app.engine('handlebars', exphbs({defaultLayout: 'main'}));
 app.set('view engine', 'handlebars');
 
-// body-parser npm package
+// BODY-PARSER NPM PACKAGE
 app.use(bodyParser.urlencoded({extended: false}));
 app.use(methodOverride('_method'));
 app.use(bodyParser.text());
 app.use(bodyParser.json({type: 'application/vnd.api+json'}));
 
-// Use all of the static files in the public folder
+// USE STATIC FILES IN PUBLIC FOLDER
 app.use(express.static('app/public'));
 
-// Listening to the port
+// LISTENING TO PORT
 app.listen(PORT, function () {
     console.log("App listening on PORT " + PORT);
 })
