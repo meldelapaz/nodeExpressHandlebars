@@ -1,49 +1,114 @@
-// NPM REQUIRES
-var express = require('express');
-var methodOverride = require('method-override');
-var exphbs = require('express-handlebars');
-var bodyParser = require('body-parser');
+var express = require("express");
+var bodyParser = require("body-parser");
+var methodOverride = require("method-override");
+var customRoutes = require("./controllers/controller.js");
+
+console.log("customRoutes", customRoutes);
+
+var app = express();
+var port = 8080;
+
+// Serve static content for the app from the "public" directory in the application directory.
+app.use(express.static("public"));
+
+// Parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// Override with POST having ?_method=DELETE
+app.use(methodOverride("_method"));
+var exphbs = require("express-handlebars");
+
+app.engine("handlebars", exphbs({ defaultLayout: "main" }));
+app.set("view engine", "handlebars");
+
 var mysql = require("mysql");
 
-// USE THIS PORT
-var PORT = process.env.PORT || 8080;
-
-// CREATING CONNECTION TO MYSQL DATABASE
 var connection = mysql.createConnection({
-    host    : 'localhost',
-    user    : 'root',
-    password: '',
-    database: 'SNL'
+    host: "localhost",
+    user: "root",
+    password: "",
+    database: "SNL"
 });
 
-// CONNECTING TO MYSQL DATABASE
-connection.connect(function(error) {
-    if (error) {
-        throw error;
+connection.connect(function(err) {
+    if (err) {
+        console.error("error connecting: " + err.stack);
+        return;
     }
-    console.log('Connected to MySQL server, as ID = ', connection.threadId);
+    console.log("connected as id " + connection.threadId);
 });
 
-// EXPRESS NPM PACKAGE
-var app = express();
+// Serve index.handlebars to the root route.
+// app.get("/", function(req, res) {
+//     connection.query("SELECT * FROM season;", function(err, data) {
+//         if (err) {
+//             throw err;
+//         }
+//         res.render("index", { season: data });
+//     });
+// });
 
-// override with the X-HTTP-Method-Override header in the request
-app.use(methodOverride('X-HTTP-Method-Override'));
+app.get("/", function (req, res) {
+    connection.query("SELECT * FROM `season` JOIN `episode` WHERE `season`.`sid` = `episode`.`sid`;",
+        function (err, data) {
+            console.log("data", data[0]);
+            if (err) {
+                throw err;
+            }
 
-// express-handlebars npm package
-app.engine('handlebars', exphbs({defaultLayout: 'main'}));
-app.set('view engine', 'handlebars');
+            res.render("index", {season: data});
 
-// BODY-PARSER NPM PACKAGE
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(methodOverride('_method'));
-app.use(bodyParser.text());
-app.use(bodyParser.json({type: 'application/vnd.api+json'}));
+        });
+});
 
-// USE STATIC FILES IN PUBLIC FOLDER
-app.use(express.static('app/public'));
+app.post("/", function(req, res) {
+    connection.query("INSERT INTO season (author, quote) VALUES (?, ?)", [
+        req.body.author, req.body.quote
+    ], function(err, result) {
+        if (err) {
+            throw err;
+        }
 
-// LISTENING TO PORT
-app.listen(PORT, function () {
-    console.log("App listening on PORT " + PORT);
-})
+        res.redirect("/");
+    });
+});
+
+app.delete("/:id", function(req, res) {
+    connection.query("DELETE FROM season WHERE id = ?", [req.params.id], function(err, result) {
+        if (err) {
+            throw err;
+        }
+        res.redirect("/");
+    });
+});
+
+// Show the user the individual quote and the form to update the quote.
+app.get("/:id", function(req, res) {
+    connection.query("SELECT * FROM season where id = ?", [req.params.id], function(err, data) {
+        if (err) {
+            throw err;
+        }
+
+        console.log(data);
+        res.render("single-quote", data[0]);
+    });
+});
+
+// Update a quote by an id and then redirect to the root route.
+app.put("/:id", function(req, res) {
+    connection.query("UPDATE season SET author = ?, quote = ? WHERE id = ?", [
+        req.body.author, req.body.quote, req.params.id
+    ], function(err, result) {
+        if (err) {
+            throw err;
+        }
+
+        res.redirect("/");
+    });
+});
+
+app.listen(port, function() {
+    console.log("Listening on PORT " + port);
+});
+
+module.exports = app;
