@@ -1,3 +1,25 @@
-span.label{
+span.label {
     color: black;
+}
+.content {
+    margin: 60px;
+    padding: 30px;
+    background-color: lightblue;
+    border: dashed;
+    border-color: black;
+}
+.navbar {
+    text-align: center;
+}
+h1 {
+    text-align: center;
+    padding: 30px;
+    color: black;
+    font-style: italic;
+}
+ul {
+    padding: 15px;
+}
+.subtext {
+    text-align: center;
 }

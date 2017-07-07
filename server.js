@@ -56,10 +56,34 @@ app.get("/", function (req, res) {
                 throw err;
             }
 
-            res.render("index", {season: data});
+            res.render("index", {season: data, episode: data });
 
         });
 });
+
+app.get("/", function (req, res) {
+    connection.query("SELECT * FROM `season` JOIN `title` WHERE `season`.`sid` = `title`.`sid`;",
+            function (err, data) {
+                console.log("data", data[0]);
+                if (err) {
+                    throw err;
+                }
+
+                res.render("index", {season: data, title: data});
+    });
+});
+
+
+// app.get("/", function (req, res) {
+//     connection.query("SELECT `actor`.*, `episode`.*, `rating`.*, `season`.*, `title`.* FROM `actor` JOIN `episode` WHERE `actor`.'sid' = `actor`.'sid';",
+//         function (err,data) {
+//             console.log("data", data[0]);
+//             if (err) {
+//                 throw err;
+//             }
+//             res.render("index", {season: data});
+//         });
+// });
 
 app.post("/", function(req, res) {
     connection.query("INSERT INTO season (author, quote) VALUES (?, ?)", [
